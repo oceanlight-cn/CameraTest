@@ -4,7 +4,11 @@ import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
 
-Item {
+import com.wiseelement.qmlcomponents 1.0
+import QtQuick.Window 2.2
+
+Window {
+    visible: true
     id: root
     property int row_spacing: 10
     width: 300
@@ -205,12 +209,15 @@ Item {
 
                 Label {
                     id: lblComPort
-                    text: qsTr("Port:")
+                    text: "ComPort;"
                 }
 
                 ComboBox {
                     id: cboComs
                     width: 100
+                    model: ListModel {
+                        id: cbItems
+                    }
                 }
 
                 Label {
@@ -259,5 +266,25 @@ Item {
             }
 
         }
+
+    SerialPort{
+        id:serialport
+    }
+
+    Component.onCompleted: {
+        serialport.loadcoms();
+    }
+
+    Connections{
+        target:serialport
+        onComChanged:
+        {
+            var portComs = serialport.getcoms();
+            for(var i= 0; i < portComs.length; i++)
+            {
+                cbItems.append({'text':portComs[i]});
+            }
+        }
+    }
 }
 
