@@ -4,7 +4,10 @@ QT += qml quick serialport
 CONFIG += c++11
 
 SOURCES += main.cpp \
-    serialport.cpp
+    serialport.cpp \
+    CustomIO/ICustomIO.cpp \
+    CustomIO/NetIO.cpp \
+    CustomIO/SerialPortIO.cpp
 
 RESOURCES += qml.qrc
 
@@ -15,4 +18,10 @@ QML_IMPORT_PATH += $$PWD
 include(deployment.pri)
 
 HEADERS += \
-    serialport.h
+    serialport.h \
+    CustomIO/ICustomIO.h \
+    CustomIO/NetIO.h \
+    CustomIO/SerialPortIO.h \
+    globaldef.h
+
+INCLUDEPATH += $$PWD/..

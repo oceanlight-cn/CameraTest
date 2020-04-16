@@ -6,6 +6,7 @@ import QtQuick.Layouts 1.3
 
 import com.wiseelement.qmlcomponents 1.0
 import QtQuick.Window 2.2
+import QtQuick.Dialogs 1.1
 
 Window {
     visible: true
@@ -13,6 +14,8 @@ Window {
     property int row_spacing: 10
     width: 300
     height: 600
+    property date currentDate: new Date()
+    property var infoDlg: null
 
     Rectangle{
             id: layer1
@@ -38,13 +41,12 @@ Window {
                     text: qsTr("test start time:")
                 }
 
-                TextField{
+                Label{
                     id:txtStartTime
-                    width: 50
                 }
 
                 Label {
-                    text: qsTr("test duration:")
+                    text: qsTr("test duration(hours):")
                 }
 
                 TextField{
@@ -66,7 +68,7 @@ Window {
                     text: qsTr("Decode Center Pos:")
                 }
 
-                TextField{
+                Label {
                     id:txtCenterPos
 
                 }
@@ -85,7 +87,12 @@ Window {
                     Text {
                         id: btnStart
                         text: qsTr("start")
-                        anchors.centerIn: parent
+                        anchors.centerIn: parent                  
+                    }
+
+                    onClicked:
+                    {
+                        startTest();
                     }
                 }
 
@@ -132,10 +139,12 @@ Window {
                 y: 20
 
                 CheckBox {
+                    id: chkEthernet
                     text: qsTr("Ethernet")
                 }
 
                 CheckBox {
+                    id: chkSerialPort
                     text: qsTr("SerialPort")
                 }
 
@@ -284,6 +293,71 @@ Window {
             {
                 cbItems.append({'text':portComs[i]});
             }
+        }
+    }
+
+    function startTest()
+    {
+        if(!checkInput())
+        {
+            return;
+        }
+
+        txtStartTime.text = currentDate.toTimeString();
+    }
+
+    function checkInput()
+    {
+        var ret = false;
+        if(txtDuration.text == "")
+        {
+            showInfoDlg("Please input test duration!");
+            return ret;
+        }
+
+        if(!chkEthernet.checked && !chkSerialPort.checked)
+        {
+            showInfoDlg("Please choose at least one datasource!");
+            return ret;
+        }
+
+        if(chkEthernet.checked)
+        {
+            if(txtIp.text == "")
+            {
+                showInfoDlg("Please input Ip!");
+                return ret;
+            }
+
+            if(txtPort.text == "")
+            {
+                showInfoDlg("Please input port!");
+                return ret;
+            }
+        }
+
+        ret = true;
+        return ret;
+    }
+
+    function onInfoDlgClosed()
+    {
+        infoDlg.destroy();
+        infoDlg = null;
+    }
+
+    function showInfoDlg(msg)
+    {
+        if(infoDlg == null)
+        {
+            infoDlg = Qt.createQmlObject(
+                'import QtQuick 2.0;
+                        import QtQuick.Dialogs 1.2;
+                 MessageDialog{icon:StandardIcon.Information;title: "Infomation"\n;text:\"' + msg +'"\n
+                 standardButtons:StandardButton.Ok;}',root, "infoDlg"
+                        );
+            infoDlg.visible = true;
+            infoDlg.accepted.connect(onInfoDlgClosed);
         }
     }
 }
