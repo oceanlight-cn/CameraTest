@@ -11,7 +11,7 @@ namespace CustomIO {
         return m_buffer;
     }
 
-    int NetIO::writeData(QByteArray cmd) noexcept
+    int NetIO::writeData(QByteArray cmd)
     {
             if (m_client->state() != QAbstractSocket::ConnectedState)
             {

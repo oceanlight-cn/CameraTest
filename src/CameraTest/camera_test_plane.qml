@@ -5,6 +5,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
 
 import com.wiseelement.qmlcomponents 1.0
+import com.wiseelement.qmlcameratest 1.0
 import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.1
 
@@ -280,6 +281,10 @@ Window {
         id:serialport
     }
 
+    CameraTest{
+        id:cameratest
+    }
+
     Component.onCompleted: {
         serialport.loadcoms();
     }
@@ -298,6 +303,7 @@ Window {
 
     function startTest()
     {
+        cameratest.isEthernetSet = chkEthernet.checked;
         if(!checkInput())
         {
             return;

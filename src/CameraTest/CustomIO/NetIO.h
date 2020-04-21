@@ -33,7 +33,7 @@ namespace CustomIO
         QByteArray m_buffer;
 
     public slots:
-        virtual int writeData(QByteArray cmd) noexcept;
+        virtual int writeData(QByteArray cmd);
         virtual int Open() noexcept;
         virtual void Close();
 

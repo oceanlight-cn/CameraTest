@@ -11,17 +11,12 @@ enum class enumDataSource
 {
     ETHERNET,
     SERIAL_PORT,
-    USB2_SERIAL_PORT,
-    USB2_KEYBOARD,
 };
 
 enum class enumTriggerSource
 {
     ETHERNET,
     SERIAL_PORT,
-    USB2_SERIAL_PORT,
-    GPIO,
-    IN_TURN,
 };
 
 enum class enumCmd
@@ -63,27 +58,11 @@ struct struDataSourceConfig
 {
     vector<enumDataSource> dataSources;
     struSerialData serialPortConfig;
-    struSerialData usb2serialPortConfig;
-    struDeviceInfo usb2keyboardConfig;
-};
-
-struct struIoData
-{
-    bool enabled;
-    QString ip;
-
-    struIoData()
-    {
-//        enabled = false;
-//        ip = "";
-    }
 };
 
 struct struTriggerSourceConfig
 {
     enumTriggerSource triggerSource;
-    struIoData io[2];
-    int turn_time;
 };
 
 struct struTestConfig

@@ -17,9 +17,6 @@ namespace CustomIO
     {
         ETHERNET,
         SERIAL_PORT,
-        USB2_SERIAL_PORT,
-        USB2_KEYBOARD,
-        GPIO,
     };
 
     class ICustomIO : public QObject
@@ -36,14 +33,14 @@ namespace CustomIO
             virtual bool getIsEnable() const;
             virtual void setIsEnable(bool isEnable);
 
+            virtual ~ICustomIO();
+
     protected:
             enumIoType m_io_type;
             bool m_isEnable;
             QStringList m_configData;
 
             virtual void ReadData() = 0;
-
-            virtual ~ICustomIO();
 
     public slots:
             virtual int writeData(QByteArray cmd) = 0;
