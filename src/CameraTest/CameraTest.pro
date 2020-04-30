@@ -13,6 +13,8 @@ SOURCES +=  \
     CustomIO/IOFactory.cpp \
     CustomIO/TriggerSource.cpp \
     CustomIO/TriggerSourceManager.cpp \
+    CustomIO/CDummyNetMsg.cpp \
+    CustomIO/CDummySerialportMsg.cpp \
     Helper/EnumTypeConverter.cpp \
     Queue/ReadParser.cpp \
     Queue/ReadQueueThread.cpp \
@@ -41,6 +43,8 @@ HEADERS += \
     CustomIO/IOFactory.h \
     CustomIO/TriggerSource.h \
     CustomIO/TriggerSourceManager.h \
+    CustomIO/CDummyNetMsg.h \
+    CustomIO/CDummySerialportMsg.h \
     Helper/EnumTypeConverter.h \
     Helper/LaterTimer.hpp \
     Queue/ReadParser.h \
@@ -50,5 +54,6 @@ HEADERS += \
     TestModule/CustomIoReadProcessor.h \
     TestModule/TestProcessManager.h \
     CameraTest.h
+
 
 INCLUDEPATH += $$PWD/..

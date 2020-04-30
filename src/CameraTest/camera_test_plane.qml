@@ -17,6 +17,7 @@ Window {
     height: 600
     property date currentDate: new Date()
     property var infoDlg: null
+    property int failCount:0
 
     Rectangle{
             id: layer1
@@ -61,7 +62,7 @@ Window {
 
                 Text{
                     id:txtFailTimes
-                    text: qsTr("")
+                    text: failCount
                 }
 
                 Label {
@@ -112,6 +113,11 @@ Window {
                         id: btnStop
                         text: qsTr("stop")
                         anchors.centerIn: parent
+                    }
+
+                    onClicked:
+                    {
+                        cameratest.StopTest();
                     }
                 }
             }
@@ -283,6 +289,17 @@ Window {
 
     CameraTest{
         id:cameratest
+
+        onIncreaseFailCount:
+        {
+            console.log("fail.");
+            txtFailTimes.text = failCount++;
+        }
+
+        onSendCoordinate:
+        {
+            txtCenterPos.text = pos;
+        }
     }
 
     Component.onCompleted: {
@@ -303,13 +320,32 @@ Window {
 
     function startTest()
     {
-        cameratest.isEthernetSet = chkEthernet.checked;
         if(!checkInput())
         {
             return;
         }
 
+        failCount = 0;
+        cameratest.duration = parseInt(txtDuration.text);
+        cameratest.isEthernetSet = chkEthernet.checked;
+        cameratest.isSerialportSet = chkSerialPort.checked;
+        if(chkEthernet.checked)
+        {
+            cameratest.ip = txtIp.text;
+            cameratest.port = parseInt(txtPort.text);
+        }
+
+        if(chkSerialPort.checked)
+        {
+            cameratest.comport = cboComs.currentText;
+            cameratest.baudrate = parseInt(cboBaudRate.currentText);
+            cameratest.parity = cboParity.currentText;
+            cameratest.databits = parseInt(cboDatabits.currentText);
+            cameratest.stopbits = cboStopbits.currentText;
+        }
+
         txtStartTime.text = currentDate.toTimeString();
+        cameratest.StartTest();
     }
 
     function checkInput()

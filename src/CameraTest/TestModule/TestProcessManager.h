@@ -22,6 +22,8 @@
 #include <chrono>
 #include <queue>
 #include <memory>
+#include "CustomIO/CDummyNetMsg.h"
+#include "CustomIO/CDummySerialportMsg.h"
 
 using namespace std;
 
@@ -48,7 +50,7 @@ public:
     explicit TestProcessManager(QObject* parent = nullptr);
     ~TestProcessManager();
 
-    void Init(QString strTriggerCmd, QString TemplateStr, QString CenterStr, QString CoordinateX, QString CoordinateY);
+    void Init();
     void ReadImage();
 
     void SetConfig(struTestConfig config);
@@ -98,18 +100,12 @@ private:
     bool m_bInited = false;
 
     CommState m_commState;
+    CDummyNetMsg netMsg;
+    CDummySerialportMsg serialportMsg;
 
 signals:
     void recvDateDisplay(QByteArray str, enumDataSource src);
     void sendImageInfo(QString netImageWorkEntry, enumDataSource src);
-    int sig_SocketWriteData(QByteArray cmd);
-    int sig_SocketOpen();
-    void sig_SocketClose();
-
-    int sig_SerialWriteData(QByteArray cmd);
-    int sig_SerialOpen();
-    void sig_SerialClose();
-
     void sig_recvDateDisplay(QByteArray str, enumDataSource src);
     void sig_disconnected(CustomIO::enumIoType io_type);
 

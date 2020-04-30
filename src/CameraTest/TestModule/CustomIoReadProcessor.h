@@ -23,7 +23,7 @@ class CustomIoReadProcessor : public QThread
     Q_OBJECT
 
 public:
-    explicit CustomIoReadProcessor(const shared_ptr<CustomIO::ICustomIO> &io, const shared_ptr<ReadQueueThread> &readQueue, QString TemplateStr, QString CenterStr, QString CoordinateX, QString CoordinateY);
+    explicit CustomIoReadProcessor(const shared_ptr<CustomIO::ICustomIO> &io, const shared_ptr<ReadQueueThread> &readQueue);
 
     void run();
 

@@ -29,9 +29,9 @@ TestProcessManager::~TestProcessManager()
     qDebug() << "~TestProcessManager";
 }
 
-void TestProcessManager::Init(QString strTriggerCmd, QString TemplateStr, QString CenterStr, QString CoordinateX, QString CoordinateY)
+void TestProcessManager::Init()
 {
-    m_TestConfig.triggerCmd = strTriggerCmd + "\r\n";
+    m_TestConfig.triggerCmd = "kd\r\n";
 
     m_bTerminated.store(false);
 
@@ -56,7 +56,7 @@ void TestProcessManager::Init(QString strTriggerCmd, QString TemplateStr, QStrin
 
         connect(objCustomIoProcesser.pObjCustomIo.get(), SIGNAL(sigSendData(QByteArray)), objCustomIoProcesser.pReadQueue.get(), SLOT(slotReceiveData(QByteArray)));
 
-        objCustomIoProcesser.pCustomIoReadProcessor = make_shared<CustomIoReadProcessor>(objCustomIoProcesser.pObjCustomIo, objCustomIoProcesser.pReadQueue, TemplateStr, CenterStr, CoordinateX, CoordinateY);
+        objCustomIoProcesser.pCustomIoReadProcessor = make_shared<CustomIoReadProcessor>(objCustomIoProcesser.pObjCustomIo, objCustomIoProcesser.pReadQueue);
         objCustomIoProcesser.pCustomIoReadProcessor->start();
 
         connect(objCustomIoProcesser.pCustomIoReadProcessor.get(), SIGNAL(sig_recvDateDisplay(QByteArray,enumDataSource)), this, SLOT(slot_recvDateDisplay(QByteArray,enumDataSource)));
@@ -68,11 +68,11 @@ void TestProcessManager::Init(QString strTriggerCmd, QString TemplateStr, QStrin
         switch (dataSourceType) {
         case enumIoType::ETHERNET:
             {
-                connect(this, SIGNAL(sig_SocketWriteData(QByteArray)), objCustomIoProcesser.pObjCustomIo.get(), SLOT(writeData(QByteArray)));
-                connect(this, SIGNAL(sig_SocketOpen()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Open()));
-                connect(this, SIGNAL(sig_SocketClose()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Close()));
+                connect(&netMsg, SIGNAL(sig_SocketWriteData(QByteArray)), objCustomIoProcesser.pObjCustomIo.get(), SLOT(writeData(QByteArray)));
+                connect(&netMsg, SIGNAL(sig_SocketOpen()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Open()));
+                connect(&netMsg, SIGNAL(sig_SocketClose()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Close()));
 
-                emit sig_SocketOpen();
+                netMsg.Open();
                 QThread::msleep(1000);
                 m_commState = CommState::INITED;
                 Subscribe();
@@ -82,11 +82,12 @@ void TestProcessManager::Init(QString strTriggerCmd, QString TemplateStr, QStrin
             break;
         case enumIoType::SERIAL_PORT:
             {
-                connect(this, SIGNAL(sig_SerialWriteData(QByteArray)), objCustomIoProcesser.pObjCustomIo.get(), SLOT(writeData(QByteArray)));
-                connect(this, SIGNAL(sig_SerialOpen()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Open()));
-                connect(this, SIGNAL(sig_SerialClose()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Close()));
+                connect(&serialportMsg, SIGNAL(sig_SerialWriteData(QByteArray)), objCustomIoProcesser.pObjCustomIo.get(), SLOT(writeData(QByteArray)));
+                connect(&serialportMsg, SIGNAL(sig_SerialOpen()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Open()));
+                connect(&serialportMsg, SIGNAL(sig_SerialClose()), objCustomIoProcesser.pObjCustomIo.get(), SLOT(Close()));
 
-                emit sig_SerialOpen();
+                serialportMsg.Open();
+                QThread::msleep(1000);
             }
             break;
 
@@ -96,6 +97,9 @@ void TestProcessManager::Init(QString strTriggerCmd, QString TemplateStr, QStrin
 
         m_mapCustomIoProcesser.insert(make_pair(pDataSource->getType(), objCustomIoProcesser));
     }
+
+    std::thread tTestProcessManager(std::bind(&TestProcessManager::Process, this));
+    tTestProcessManager.detach();
 
 }
 
@@ -166,17 +170,17 @@ void TestProcessManager::Process()
     m_DecodeTimes = 0;
 
     QString StartImage = QString("StartCacheImage\r\n");// info camera to cache images
-    emit sig_SocketWriteData(StartImage.toLatin1());
+    netMsg.WriteData(StartImage.toLatin1());
 
     while(!m_bTerminated.load())
     {
         if(m_bInited) //Add
         {
-            if(m_commState != CommState::SUBSCRIBED)
-            {
-                qDebug() << "not receive subscribe.";
-                continue;
-            }
+//            if(m_commState != CommState::SUBSCRIBED)
+//            {
+//                qDebug() << "not receive subscribe.";
+//                continue;
+//            }
 
             m_struTriggerSource = m_TriggerSourceManager->getTriggerSource()->getType();
             QString strTriggerCmd = m_TestConfig.triggerCmd;
@@ -188,11 +192,11 @@ void TestProcessManager::Process()
             switch (m_struTriggerSource) {
                 case enumTriggerSource::ETHERNET:
                         qDebug() << "trigger cmd:" << strTriggerCmd;
-                        emit sig_SocketWriteData(strTriggerCmd.toLatin1());
+                        netMsg.WriteData(strTriggerCmd.toLatin1());
                         m_WaitReadCodeBack.acquire();
                     break;
                 case enumTriggerSource::SERIAL_PORT:
-                    emit sig_SerialWriteData(strTriggerCmd.toLatin1());
+                    serialportMsg.WriteData(strTriggerCmd.toLatin1());
                     m_WaitReadCodeBack.acquire();
                 break;
 
@@ -216,7 +220,7 @@ void TestProcessManager::slot_recvSubscribe()
 
 void TestProcessManager::Stop()
 {
-    emit sig_SocketClose();
+    netMsg.Close();
     if(m_mapCustomIoProcesser.size() > 0)
     {
         auto it = m_mapCustomIoProcesser.begin();
@@ -242,7 +246,7 @@ void TestProcessManager::Subscribe()
 {
     QString MsgContent = R"(<Message><data data="1"/><data data="StrHead:"/><data data="[barCode.CodeStr]"/><data data=":StrEnd"/><data data=";"/><data data="CenterHead:"/><data data="[barCode.Center_X]"/><data data=","/><data data="[barCode.Center_Y]"/><data data=":CenterEnd"/><data data=";"/><data data="ImageIDHead:"/><data data="[barCode.ImageID]"/><data data=":ImageIDEnd"/><data data="&lt;CR>"/><data data="&lt;LF>"/></Message>)";
     QString MsgData = QString("Subscribe(%1)\r\n").arg(MsgContent);
-    emit sig_SocketWriteData(MsgData.toLatin1());
+    netMsg.WriteData(MsgData.toLatin1());
 }
 
 void TestProcessManager::slotTimeout()
@@ -284,7 +288,7 @@ void TestProcessManager::slot_sendImageInfo(QString netImageWorkEntry, enumDataS
         {
             QString SaveImagID =  "SaveImageByID(%1)\r\n"; //info camera to save images
             SaveImagID = SaveImagID.arg(ImagID); //0001;
-            emit sig_SocketWriteData(SaveImagID.toLatin1());
+            netMsg.WriteData(SaveImagID.toLatin1());
         }
     }
 

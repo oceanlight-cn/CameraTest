@@ -3,13 +3,9 @@
 #include "Helper/EnumTypeConverter.h"
 #include <chrono>
 
-CustomIoReadProcessor::CustomIoReadProcessor(const shared_ptr<CustomIO::ICustomIO> &io, const shared_ptr<ReadQueueThread> &readQueue, QString TemplateStr, QString CenterStr, QString CoordinateX, QString CoordinateY)
+CustomIoReadProcessor::CustomIoReadProcessor(const shared_ptr<CustomIO::ICustomIO> &io, const shared_ptr<ReadQueueThread> &readQueue)
     :m_io(io),
-     m_ReadQueue(readQueue),
-     m_CoordinateX(CoordinateX),
-     m_CoordinateY(CoordinateY),
-     m_TemplateStr(TemplateStr),
-     m_CenterStr(CenterStr)
+     m_ReadQueue(readQueue)
 {
     m_ReadParser = make_unique<ReadParser>();
     m_ReadImageModule = make_unique<ReadImageModule>();
@@ -46,20 +42,6 @@ void CustomIoReadProcessor::run()
                 qDebug() << "m_buff left:" << m_buff;
                 if(objPacketData.cmd == enumCmd::READ_IMAGE)
                 {
-    #ifdef TEST
-                    QString centerStr = "1,1";
-                    QString cordX = "1.0";
-                    QString cordY = "1.0";
-                    QString TemplateStr = "abc";
-                    m_ReadImageModule->setTemplateStr(TemplateStr);
-                    m_ReadImageModule->setCenterStr(centerStr);
-                    m_ReadImageModule->setCoordinateX(cordX);
-                    m_ReadImageModule->setCoordinateY(cordY);
-    #endif
-                    m_ReadImageModule->setTemplateStr(m_TemplateStr);
-                    m_ReadImageModule->setCenterStr(m_CenterStr);
-                    m_ReadImageModule->setCoordinateX(m_CoordinateX);
-                    m_ReadImageModule->setCoordinateY(m_CoordinateY);
                     m_ReadImageModule->ProcessData(objPacketData.data);
                 }
                 else if(objPacketData.cmd == enumCmd::SUBSCRIBE)
